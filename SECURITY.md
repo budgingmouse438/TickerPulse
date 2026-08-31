@@ -94,15 +94,17 @@ Alpaca has changed these limits before).
 
 ## Automated checks (CI)
 
-`.github/workflows/security.yml` runs on every push/PR and currently
-performs:
+`.github/workflows/security.yml` runs on every push/PR and performs:
 
 - **Secret scanning** (gitleaks) across the diff, as a backstop in addition
   to GitHub's native secret scanning/push protection.
+- **Backend typecheck** (`tsc --noEmit`) and **dependency audit**
+  (`npm audit --audit-level=high`) against `backend/`, now that a real stack
+  exists there.
 
-As the codebase grows, this workflow should also run: dependency audit,
-linting, and tests. Add those jobs when the corresponding stack/manifest
-exists — don't skip wiring them in once there's code to check.
+Still missing: linting and automated tests (no test suite exists yet for the
+backend). Add a lint/test job to this same workflow once either exists —
+don't let this note go stale as the codebase grows.
 
 ## Per-commit checklist
 

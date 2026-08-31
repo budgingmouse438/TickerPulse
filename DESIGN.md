@@ -103,14 +103,31 @@ browser clients as are connected.
 - Reconcile incoming `tick`/`snapshot` messages by symbol regardless of source,
   so the UI doesn't need to care which feed a given update came from.
 
+## Backend implementation
+
+The backend described above is implemented in `backend/` (Node.js + TypeScript,
+Express + `ws`, Node's built-in `node:sqlite`). It also adds authentication:
+a single fixed account (no public signup) protected by email+password login,
+short-lived JWT access tokens + rotating refresh tokens in httpOnly cookies,
+and session-validated WebSocket upgrades. See `backend/src/` for the module
+breakdown (`auth/`, `alpaca/`, `watchlist/`, `fanout/`) and `SECURITY.md` for
+the full authentication and hardening design.
+
+To run locally: `cd backend && npm install && npm run seed` (creates the
+account) `&& npm run dev`. Requires `.env` at the repo root with real Alpaca
+credentials and a generated `JWT_SIGNING_SECRET` — see `.env.example`.
+
 ## Open questions / future work
 
-- **Stack**: language/framework for backend and frontend not yet decided.
-- **Auth / multi-user**: single-user tool for now, or does the active-ticker set
-  need to be scoped per-user rather than shared globally?
+- **Frontend**: framework not yet decided (backend/auth are implemented; the
+  UI described below is not).
 - **Historical/chart data**: out of scope for now — this doc covers live price
   display only.
-- **Behavior at the active-ticker cap**: reject new activations vs. evict the
-  least-recently-viewed symbol — needs a decision once the cap is known.
-- **Reconnect UX**: what the frontend shows while the backend's Alpaca stream is
-  reconnecting.
+- **Behavior at the active-ticker cap**: currently rejects new activations
+  with `409 active_set_full` once the cap (25) is reached — evicting the
+  least-recently-viewed symbol instead is a possible future improvement.
+- **Reconnect UX**: what the frontend shows while the backend's Alpaca stream
+  is reconnecting (the backend already broadcasts a `{type:"degraded"}`
+  message when its circuit breaker opens, which the frontend can key off of).
+- **Password recovery**: no self-service flow exists (see SECURITY.md) — a
+  lost password requires server access to re-run the seed script.
