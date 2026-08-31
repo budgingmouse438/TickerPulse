@@ -13,17 +13,20 @@ a live stream open.
 This app targets Alpaca's **free IEX market data plan**, which comes with limits
 that shape the whole architecture:
 
-- **One concurrent websocket connection per API key.** Alpaca does not allow
-  multiple simultaneous stream connections on the same account, and a browser
+- **One concurrent websocket connection per API key.** Alpaca's Basic/free plan
+  allows a single concurrent stock stream connection per account, and a browser
   tab holding the raw Alpaca keys would make that impossible to coordinate across
   multiple users/tabs.
-- **Symbol subscription cap on the free IEX feed.** Only a limited number of
-  symbols can be subscribed on the stream at once, so "active" tickers must be a
-  bounded, actively-managed set, not "subscribe to everything the user has ever
-  viewed."
-- **REST rate limits** (free tier, roughly 200 requests/min per account). Polling
-  the inactive watchlist every 10s must batch symbols into as few requests as
-  possible rather than one request per symbol per tick.
+- **Symbol subscription cap on the free IEX feed.** The Basic plan caps
+  trade+quote subscriptions at **30 symbols** at a time (minute bars are
+  uncapped), so "active" tickers must be a bounded, actively-managed set, not
+  "subscribe to everything the user has ever viewed." See
+  [SECURITY.md](./SECURITY.md) for how the app enforces a safety margin below
+  this cap.
+- **REST rate limits: 200 requests/minute per account** on the free/Basic plan
+  (both Trading API and Market Data API). Polling the inactive watchlist every
+  10s must batch symbols into as few requests as possible rather than one
+  request per symbol per tick, and stay well under this ceiling with margin.
 - **API keys must stay server-side.** Alpaca keys (even paper-trading ones)
   should never be shipped to the browser.
 
